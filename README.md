@@ -1,5 +1,9 @@
 # 工业视觉检测上位机
 
+[![CI](https://github.com/Riverbirds1/IndustrialVisionHost/actions/workflows/ci.yml/badge.svg)](https://github.com/Riverbirds1/IndustrialVisionHost/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Riverbirds1/IndustrialVisionHost)](https://github.com/Riverbirds1/IndustrialVisionHost/releases)
+[![License](https://img.shields.io/github/license/Riverbirds1/IndustrialVisionHost)](LICENSE)
+
 一套面向工业自动化学习与作品展示的 Windows 桌面上位机，使用 C#、WPF、OpenCvSharp、TCP、Modbus TCP 和 SQLite 实现从图像采集、视觉检测、设备状态控制到生产追溯的完整软件链路。
 
 项目在没有真实工业相机和 PLC 的条件下，通过模拟相机、文本协议 PLC 服务端和 Modbus TCP 服务端完成开发、故障注入与自动化验证。代码为未来接入真实设备预留了相机接口和独立通信层，但当前测试结果不代表真实产线性能。

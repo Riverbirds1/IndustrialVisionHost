@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Setup .NET 6 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 6.0.428
+
+      - name: Restore dependencies
+        run: dotnet restore IndustrialVisionHost.sln
+
+      - name: Run automated tests
+        run: dotnet test tests\IndustrialVisionHost.Tests\IndustrialVisionHost.Tests.csproj -c Release --logger "console;verbosity=minimal"
+
+      - name: Publish and package Windows x64 build
+        id: package
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          $outputRoot = Join-Path $PWD "artifacts\release"
+          .\scripts\publish-release.ps1 -Version $version -OutputRoot $outputRoot
+
+          $packageName = "IndustrialVisionHost-v$version-win-x64"
+          $publishDirectory = Join-Path $outputRoot $packageName
+          $zipPath = Join-Path $outputRoot "$packageName.zip"
+          Compress-Archive -Path "$publishDirectory\*" `
+            -DestinationPath $zipPath `
+            -CompressionLevel Optimal
+
+          $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash
+          $checksumPath = "$zipPath.sha256"
+          Set-Content -LiteralPath $checksumPath `
+            -Value "$hash  $packageName.zip" `
+            -Encoding ascii
+
+          "zip_path=$zipPath" >> $env:GITHUB_OUTPUT
+          "checksum_path=$checksumPath" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            "${{ steps.package.outputs.zip_path }}" `
+            "${{ steps.package.outputs.checksum_path }}" `
+            --title "Industrial Vision Host ${{ github.ref_name }}" `
+            --generate-notes
