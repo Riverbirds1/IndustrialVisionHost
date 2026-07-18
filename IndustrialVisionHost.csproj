@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>IndustrialVisionHost</AssemblyName>
+    <RootNamespace>IndustrialVisionHost</RootNamespace>
+    <Product>工业视觉检测上位机</Product>
+    <Description>基于 WPF、OpenCvSharp、Modbus TCP 和 SQLite 的工业视觉检测上位机。</Description>
+    <Company>IndustrialVisionHost</Company>
+    <Authors>万鸿群</Authors>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.36" />
+    <PackageReference Include="OpenCvSharp4" Version="4.9.0.20240103" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.9.0.20240103" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\**\*.cs" />
+    <Compile Remove="tools\**\*.cs" />
+    <EmbeddedResource Remove="tests\**\*" />
+    <EmbeddedResource Remove="tools\**\*" />
+    <None Remove="tests\**\*" />
+    <None Remove="tools\**\*" />
+    <Page Remove="tests\**\*.xaml" />
+    <Page Remove="tools\**\*.xaml" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,899 @@
+<Window x:Class="IndustrialVisionHost.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="工业视觉检测上位机"
+        Width="1200"
+        Height="800"
+        MinWidth="900"
+        MinHeight="650"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <Style x:Key="ControlButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Margin" Value="0,0,10,8"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
+
+        <Style x:Key="MetricTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Margin" Value="14,10"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="MetricCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SubtleSurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="EmergencyButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ControlButtonStyle}">
+            <Setter Property="Background" Value="#DC2626"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderBrush" Value="#991B1B"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="190"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部设备控制区：窗口变窄时自动换行。 -->
+        <Border Grid.Row="0"
+                Padding="14,12,14,4"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource AppBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="6">
+            <WrapPanel VerticalAlignment="Center">
+                <Border Background="#E0F2FE"
+                        BorderBrush="#7DD3FC"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="10,7"
+                        Margin="0,0,10,8">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CurrentUserStatus}"
+                                   Foreground="#0C4A6E"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding PasswordSecurityNotice}"
+                                   Foreground="#B45309"
+                                   FontSize="12"/>
+                        <TextBlock Text="{Binding PermissionStatus}"
+                                   Foreground="#0369A1"
+                                   FontSize="12"/>
+                    </StackPanel>
+                </Border>
+
+                <Button Content="修改密码"
+                        Click="ChangePassword_Click"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="报警记录"
+                        Click="ViewAlarms_Click"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="系统设置"
+                        Click="SystemSettings_Click"
+                        Visibility="{Binding CanManageSystemSettings, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="用户管理"
+                        Click="ManageUsers_Click"
+                        Visibility="{Binding CanManageUsers, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="操作审计"
+                        Click="ViewAuditLog_Click"
+                        Visibility="{Binding CanManageUsers, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="打开相机"
+                        Command="{Binding OpenCameraCommand}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="停止相机"
+                        Command="{Binding StopCameraCommand}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="开始检测"
+                        Command="{Binding StartDetectCommand}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="复位状态"
+                        Command="{Binding ResetMachineStateCommand}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="急停"
+                        Command="{Binding EmergencyStopCommand}"
+                        Style="{StaticResource EmergencyButtonStyle}"/>
+
+                <TextBlock Text="运行模式："
+                           Margin="8,0,8,8"
+                           VerticalAlignment="Center"
+                           FontSize="15"/>
+
+                <ComboBox Width="130"
+                          Height="36"
+                          Margin="0,0,12,8"
+                          VerticalAlignment="Center"
+                          ItemsSource="{Binding OperationModes}"
+                          DisplayMemberPath="Value"
+                          SelectedValuePath="Key"
+                          SelectedValue="{Binding SelectedOperationMode, Mode=TwoWay}"
+                          IsEnabled="{Binding CanChangeOperationMode}"/>
+
+                <TextBlock Text="生产批次："
+                           Margin="8,0,8,8"
+                           VerticalAlignment="Center"
+                           FontSize="15"/>
+
+                <TextBox Text="{Binding BatchNumberInput, UpdateSourceTrigger=PropertyChanged}"
+                         Width="175"
+                         Height="36"
+                         MaxLength="50"
+                         Padding="8,5"
+                         Margin="0,0,8,8"
+                         VerticalContentAlignment="Center"/>
+
+                <Button Content="应用批次"
+                        Command="{Binding ApplyBatchNumberCommand}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <TextBlock Text="{Binding ActiveBatchStatus}"
+                           Margin="2,0,14,8"
+                           VerticalAlignment="Center"
+                           FontSize="14"
+                           Foreground="#1D4ED8"/>
+
+                <TextBlock Text="配方名称："
+                           Margin="4,0,8,8"
+                           VerticalAlignment="Center"
+                           FontSize="15"/>
+
+                <TextBox Text="{Binding RecipeNameInput, UpdateSourceTrigger=PropertyChanged}"
+                         Width="150"
+                         Height="36"
+                         MaxLength="50"
+                         Padding="8,5"
+                         Margin="0,0,8,8"
+                         IsEnabled="{Binding CanEditRecipeName}"
+                         VerticalContentAlignment="Center"/>
+
+                <Button Content="保存配方"
+                        Command="{Binding SaveRecipeCommand}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <Button Content="加载配方"
+                        Command="{Binding LoadRecipeCommand}"
+                        Style="{StaticResource ControlButtonStyle}"/>
+
+                <TextBlock Text="{Binding RecipeStatus}"
+                           Margin="4,0,14,8"
+                           VerticalAlignment="Center"
+                           FontSize="14"
+                           Foreground="#374151"/>
+
+                <TextBlock Text="模拟场景："
+                           Margin="12,0,8,8"
+                           VerticalAlignment="Center"
+                           FontSize="15"/>
+
+                <ComboBox Width="170"
+                          Height="36"
+                          Margin="0,0,0,8"
+                          VerticalAlignment="Center"
+                          ItemsSource="{Binding SimulationScenarios}"
+                          DisplayMemberPath="Value"
+                          SelectedValuePath="Key"
+                          SelectedValue="{Binding SelectedSimulationScenario, Mode=TwoWay}"
+                          IsEnabled="{Binding CanConfigureSimulation}"/>
+
+                <TextBlock Text="调试视图："
+                           Margin="18,0,8,8"
+                           VerticalAlignment="Center"
+                           FontSize="15"/>
+
+                <ComboBox Width="170"
+                          Height="36"
+                          Margin="0,0,0,8"
+                          VerticalAlignment="Center"
+                          ItemsSource="{Binding VisionDebugViews}"
+                          DisplayMemberPath="Value"
+                          SelectedValuePath="Key"
+                          SelectedValue="{Binding SelectedVisionDebugView, Mode=TwoWay}"
+                          IsEnabled="{Binding CanConfigureSimulation}"/>
+            </WrapPanel>
+        </Border>
+
+        <!-- 中间工作区：实时检测与历史追溯分为两个页签。 -->
+        <TabControl Grid.Row="1" Margin="0,12,0,12">
+        <TabItem Header="实时检测">
+        <Grid Margin="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Margin="0,0,12,0"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="#808080"
+                    BorderThickness="2"
+                    CornerRadius="4">
+                <Image Source="{Binding CameraImage}"
+                       Stretch="Uniform"
+                       Margin="8"/>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Padding="14"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource AppBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                    <StackPanel IsEnabled="{Binding CanConfigureCommunication}">
+                    <TextBlock Text="PLC TCP 通信"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,12"/>
+
+                    <TextBlock Text="PLC 地址"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding PlcHost, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34" Padding="8,5" FontSize="15"
+                             Margin="0,0,0,8"/>
+
+                    <TextBlock Text="TCP 端口"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding PlcPortText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34" Padding="8,5" FontSize="15"
+                             Margin="0,0,0,10"/>
+
+                    <WrapPanel Margin="0,0,0,4">
+                        <Button Content="启动模拟器"
+                                Command="{Binding StartPlcSimulatorCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="停止模拟器"
+                                Command="{Binding StopPlcSimulatorCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="连接 PLC"
+                                Command="{Binding ConnectPlcCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="断开 PLC"
+                                Command="{Binding DisconnectPlcCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="发送 PING"
+                                Command="{Binding SendPingCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="PLC触发检测"
+                                Command="{Binding TriggerPlcInspectionCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                    </WrapPanel>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PlcSimulatorStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PlcConnectionStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding LastPlcMessage}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PlcHeartbeatStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PlcReconnectStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PlcHandshakeStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ModbusRegisterStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ModbusTcpStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <TextBlock Text="Modbus TCP 客户端（端口为上方端口 + 1）"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Margin="0,10,0,8"/>
+
+                    <WrapPanel Margin="0,0,0,4">
+                        <Button Content="连接 Modbus"
+                                Command="{Binding ConnectModbusCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="断开 Modbus"
+                                Command="{Binding DisconnectModbusCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="读取 Modbus"
+                                Command="{Binding ReadModbusCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="写入测试值"
+                                Command="{Binding WriteModbusTestCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                        <Button Content="Modbus触发检测"
+                                Command="{Binding TriggerModbusInspectionCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+                    </WrapPanel>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ModbusClientStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ModbusClientData}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ModbusPollingStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ModbusReconnectStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+                    </StackPanel>
+
+                    <Separator Margin="0,4,0,12"/>
+
+                    <TextBlock Text="检测状态"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,12"/>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <StackPanel Margin="14,10">
+                            <TextBlock Text="{Binding MachineStateStatus}"
+                                       TextWrapping="Wrap"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding MachineStateReason}"
+                                       TextWrapping="Wrap"
+                                       FontSize="13"
+                                       Foreground="#4B5563"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding OperationModeStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ActiveAlarmStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="#B91C1C"
+                                   Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding DatabaseStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14" Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding CameraStatus}"
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding JudgementReason, StringFormat=判定：{0}}"
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ImageStorageStatus}"
+                                   TextWrapping="Wrap"
+                                   FontSize="14"
+                                   Margin="14,10"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding RawContourCount, StringFormat=原始轮廓：{0}}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding Count, StringFormat=有效目标：{0}}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding FrameCount, StringFormat=采集帧数：{0}}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding Area, StringFormat=像素面积：{0:F0} px²}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PhysicalArea, StringFormat=物理面积：{0:F2} mm²}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding ProcessingTimeMs, StringFormat=检测耗时：{0:F2} ms}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding Position}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PhysicalPosition}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PixelSize}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Border Style="{StaticResource MetricCardStyle}">
+                        <TextBlock Text="{Binding PhysicalSize}"
+                                   Style="{StaticResource MetricTextStyle}"/>
+                    </Border>
+
+                    <Separator Margin="0,4,0,12"/>
+
+                    <StackPanel IsEnabled="{Binding CanEditVisionParameters}">
+                    <TextBlock Text="视觉参数"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,12"/>
+
+                    <TextBlock Text="像素当量（mm/px，&gt; 0）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MillimetersPerPixelText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MillimetersPerPixelError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="最小宽度（mm，≥ 0）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MinimumWidthMillimetersText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34" Padding="8,5" FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MinimumWidthMillimetersError}"
+                               Foreground="#DC2626" TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="最大宽度（mm，≥ 最小宽度）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MaximumWidthMillimetersText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34" Padding="8,5" FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MaximumWidthMillimetersError}"
+                               Foreground="#DC2626" TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="最小高度（mm，≥ 0）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MinimumHeightMillimetersText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34" Padding="8,5" FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MinimumHeightMillimetersError}"
+                               Foreground="#DC2626" TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="最大高度（mm，≥ 最小高度）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MaximumHeightMillimetersText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34" Padding="8,5" FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MaximumHeightMillimetersError}"
+                               Foreground="#DC2626" TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="二值化阈值（0～255）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.BinaryThresholdText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.BinaryThresholdError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="期望目标数量（&gt; 0）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.ExpectedTargetCountText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.ExpectedTargetCountError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="最小合格面积（&gt; 0）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MinimumOkAreaText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MinimumOkAreaError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="最大合格面积（≥ 最小合格面积）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MaximumOkAreaText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MaximumOkAreaError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="高斯核尺寸（1～31 奇数）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.GaussianKernelSizeText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.GaussianKernelSizeError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="形态学核尺寸（1～31 奇数）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MorphologyKernelSizeText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MorphologyKernelSizeError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,8"/>
+
+                    <CheckBox Content="启用开运算（去除小噪点）"
+                              IsChecked="{Binding VisionParameters.EnableOpening}"
+                              FontSize="14"
+                              Margin="0,2,0,7"/>
+
+                    <CheckBox Content="启用闭运算（填补小孔洞）"
+                              IsChecked="{Binding VisionParameters.EnableClosing}"
+                              FontSize="14"
+                              Margin="0,0,0,12"/>
+
+                    <TextBlock Text="轮廓最小面积（≥ 0）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MinimumContourAreaText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MinimumContourAreaError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,10"/>
+
+                    <TextBlock Text="最小圆度（0～1）"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding VisionParameters.MinimumCircularityText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="34"
+                             Padding="8,5"
+                             FontSize="15"/>
+                    <TextBlock Text="{Binding VisionParameters.MinimumCircularityError}"
+                               Foreground="#DC2626"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,12"/>
+
+                    <CheckBox Content="启用 ROI 检测区域"
+                              IsChecked="{Binding VisionParameters.IsRoiEnabled}"
+                              FontSize="15"
+                              Margin="0,2,0,10"/>
+
+                    <StackPanel IsEnabled="{Binding VisionParameters.IsRoiEnabled}">
+                        <TextBlock Text="ROI X"
+                                   FontSize="14"
+                                   Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding VisionParameters.RoiXText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="32"
+                                 Padding="8,4"/>
+                        <TextBlock Text="{Binding VisionParameters.RoiXError}"
+                                   Foreground="#DC2626"
+                                   TextWrapping="Wrap"
+                                   Margin="0,3,0,7"/>
+
+                        <TextBlock Text="ROI Y"
+                                   FontSize="14"
+                                   Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding VisionParameters.RoiYText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="32"
+                                 Padding="8,4"/>
+                        <TextBlock Text="{Binding VisionParameters.RoiYError}"
+                                   Foreground="#DC2626"
+                                   TextWrapping="Wrap"
+                                   Margin="0,3,0,7"/>
+
+                        <TextBlock Text="ROI 宽度"
+                                   FontSize="14"
+                                   Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding VisionParameters.RoiWidthText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="32"
+                                 Padding="8,4"/>
+                        <TextBlock Text="{Binding VisionParameters.RoiWidthError}"
+                                   Foreground="#DC2626"
+                                   TextWrapping="Wrap"
+                                   Margin="0,3,0,7"/>
+
+                        <TextBlock Text="ROI 高度"
+                                   FontSize="14"
+                                   Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding VisionParameters.RoiHeightText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="32"
+                                 Padding="8,4"/>
+                        <TextBlock Text="{Binding VisionParameters.RoiHeightError}"
+                                   Foreground="#DC2626"
+                                   TextWrapping="Wrap"
+                                   Margin="0,3,0,0"/>
+                    </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        </TabItem>
+
+        <TabItem Header="检测历史">
+            <Grid Margin="8" Background="{DynamicResource SurfaceBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Padding="12"
+                        Background="#F8FAFC"
+                        BorderBrush="{DynamicResource AppBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="5"
+                        Margin="0,0,0,10">
+                    <StackPanel>
+                    <WrapPanel VerticalAlignment="Center">
+                        <TextBlock Text="开始日期"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,6,0"/>
+                        <DatePicker SelectedDate="{Binding HistoryStartDate}"
+                                    Width="140"
+                                    Height="32"
+                                    Margin="0,0,14,0"/>
+
+                        <TextBlock Text="结束日期"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,6,0"/>
+                        <DatePicker SelectedDate="{Binding HistoryEndDate}"
+                                    Width="140"
+                                    Height="32"
+                                    Margin="0,0,14,0"/>
+
+                        <TextBlock Text="检测结果"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,6,0"/>
+                        <ComboBox ItemsSource="{Binding HistoryResultFilters}"
+                                  DisplayMemberPath="Value"
+                                  SelectedValuePath="Key"
+                                  SelectedValue="{Binding SelectedHistoryResultFilter}"
+                                  Width="120"
+                                  Height="32"
+                                  Margin="0,0,14,0"/>
+
+                        <TextBlock Text="批次号"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,6,0"/>
+                        <TextBox Text="{Binding HistoryBatchNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="160"
+                                 Height="32"
+                                 MaxLength="50"
+                                 Padding="7,4"
+                                 ToolTip="留空表示查询全部批次"
+                                 Margin="0,0,14,0"/>
+
+                        <Button Content="查询/刷新"
+                                Command="{Binding QueryHistoryCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+
+                        <Button Content="导出 CSV"
+                                Command="{Binding ExportHistoryCsvCommand}"
+                                Style="{StaticResource ControlButtonStyle}"/>
+
+                        <TextBlock Text="{Binding HistoryQueryStatus}"
+                                   VerticalAlignment="Center"
+                                   Foreground="#374151"
+                                   Margin="4,0,0,8"/>
+                    </WrapPanel>
+
+                    <Separator Margin="0,4,0,8"/>
+
+                    <WrapPanel VerticalAlignment="Center">
+                        <Border Background="#E0F2FE"
+                                CornerRadius="4"
+                                Padding="12,7"
+                                Margin="0,0,8,6">
+                            <TextBlock Text="{Binding HistoryTotalText}"
+                                       FontWeight="SemiBold"/>
+                        </Border>
+                        <Border Background="#DCFCE7"
+                                CornerRadius="4"
+                                Padding="12,7"
+                                Margin="0,0,8,6">
+                            <TextBlock Text="{Binding HistoryOkText}"
+                                       Foreground="#166534"
+                                       FontWeight="SemiBold"/>
+                        </Border>
+                        <Border Background="#FEE2E2"
+                                CornerRadius="4"
+                                Padding="12,7"
+                                Margin="0,0,8,6">
+                            <TextBlock Text="{Binding HistoryNgText}"
+                                       Foreground="#991B1B"
+                                       FontWeight="SemiBold"/>
+                        </Border>
+                        <Border Background="#FEF3C7"
+                                CornerRadius="4"
+                                Padding="12,7"
+                                Margin="0,0,18,6">
+                            <TextBlock Text="{Binding HistoryPassRateText}"
+                                       Foreground="#92400E"
+                                       FontWeight="SemiBold"/>
+                        </Border>
+
+                        <Button Content="首页"
+                                Command="{Binding FirstHistoryPageCommand}"
+                                Width="70" Height="32"
+                                Margin="0,0,6,6"/>
+                        <Button Content="上一页"
+                                Command="{Binding PreviousHistoryPageCommand}"
+                                Width="70" Height="32"
+                                Margin="0,0,6,6"/>
+                        <Button Content="下一页"
+                                Command="{Binding NextHistoryPageCommand}"
+                                Width="70" Height="32"
+                                Margin="0,0,6,6"/>
+                        <Button Content="末页"
+                                Command="{Binding LastHistoryPageCommand}"
+                                Width="70" Height="32"
+                                Margin="0,0,0,6"/>
+                    </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding HistoryRecords}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          SelectionMode="Single"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          AlternatingRowBackground="#F8FAFC"
+                          BorderBrush="{DynamicResource AppBorderBrush}"
+                          BorderThickness="1"
+                          FontSize="13"
+                          RowHeight="30"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="70"/>
+                        <DataGridTextColumn Header="批次号" Binding="{Binding BatchNumberText}" Width="145"/>
+                        <DataGridTextColumn Header="配方名称" Binding="{Binding RecipeNameText}" Width="155"/>
+                        <DataGridTextColumn Header="配方版本" Binding="{Binding RecipeRevisionText}" Width="95"/>
+                        <DataGridTextColumn Header="检测时间" Binding="{Binding DetectedAtLocalText}" Width="165"/>
+                        <DataGridTextColumn Header="结果" Binding="{Binding ResultText}" Width="60"/>
+                        <DataGridTextColumn Header="来源" Binding="{Binding TriggerSourceText}" Width="90"/>
+                        <DataGridTextColumn Header="模式" Binding="{Binding OperationModeText}" Width="65"/>
+                        <DataGridTextColumn Header="周期号" Binding="{Binding CycleId}" Width="90"/>
+                        <DataGridTextColumn Header="判定代码" Binding="{Binding JudgementCode}" Width="130"/>
+                        <DataGridTextColumn Header="原因" Binding="{Binding JudgementReason}" Width="200"/>
+                        <DataGridTextColumn Header="数量" Binding="{Binding TargetCount}" Width="60"/>
+                        <DataGridTextColumn Header="面积(px²)" Binding="{Binding AreaPixels, StringFormat=F0}" Width="85"/>
+                        <DataGridTextColumn Header="面积(mm²)" Binding="{Binding PhysicalAreaSquareMillimeters, StringFormat=F2}" Width="90"/>
+                        <DataGridTextColumn Header="中心(px)" Binding="{Binding PixelCenterText}" Width="100"/>
+                        <DataGridTextColumn Header="中心(mm)" Binding="{Binding PhysicalCenterText}" Width="120"/>
+                        <DataGridTextColumn Header="尺寸(px)" Binding="{Binding PixelSizeText}" Width="90"/>
+                        <DataGridTextColumn Header="尺寸(mm)" Binding="{Binding PhysicalSizeText}" Width="110"/>
+                        <DataGridTextColumn Header="耗时(ms)" Binding="{Binding ProcessingTimeMilliseconds, StringFormat=F2}" Width="85"/>
+                        <DataGridTextColumn Header="NG 图片路径" Binding="{Binding NgImagePath}" Width="300"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </TabItem>
+        </TabControl>
+
+        <!-- 底部运行日志区。 -->
+        <GroupBox Grid.Row="2"
+                  Header="运行日志"
+                  Padding="6"
+                  Background="{DynamicResource SurfaceBrush}"
+                  BorderBrush="{DynamicResource AppBorderBrush}"
+                  FontSize="14">
+            <ListBox ItemsSource="{Binding Logs}"
+                     DisplayMemberPath="DisplayText"
+                     FontFamily="Consolas"
+                     FontSize="14"
+                     HorizontalContentAlignment="Stretch"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        </GroupBox>
+    </Grid>
+</Window>

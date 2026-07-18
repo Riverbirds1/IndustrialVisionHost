@@ -1,0 +1,76 @@
+<Window x:Class="IndustrialVisionHost.SystemSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="系统设置 - 工业视觉检测上位机"
+        Width="620" Height="760" MinWidth="560" MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="24">
+            <Border Padding="24"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource AppBorderBrush}"
+                    BorderThickness="1" CornerRadius="8">
+                <StackPanel>
+                    <TextBlock Text="系统设置" FontSize="25" FontWeight="Bold"/>
+                    <TextBlock Text="这些参数属于当前上位机，不属于产品视觉配方。"
+                               Margin="0,6,0,22" Foreground="#64748B"/>
+
+                    <TextBlock Text="PLC 与 Modbus 通信" FontSize="18"
+                               FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <TextBlock Text="PLC 地址" Margin="0,0,0,5"/>
+                    <TextBox x:Name="PlcHostTextBox" Height="36" Padding="8,5"
+                             Margin="0,0,0,12" MaxLength="255"/>
+                    <TextBlock Text="文本协议端口（Modbus 自动使用下一端口）"
+                               Margin="0,0,0,5"/>
+                    <TextBox x:Name="PlcPortTextBox" Height="36" Padding="8,5"
+                             Margin="0,0,0,6"/>
+                    <TextBlock x:Name="ModbusPortTextBlock" Foreground="#2563EB"
+                               Margin="0,0,0,20"/>
+
+                    <Separator Margin="0,0,0,18"/>
+                    <TextBlock Text="NG 图片存储" FontSize="18"
+                               FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <TextBlock Text="保留天数（1～3650）" Margin="0,0,0,5"/>
+                    <TextBox x:Name="RetentionDaysTextBox" Height="36" Padding="8,5"
+                             Margin="0,0,0,12"/>
+                    <TextBlock Text="容量上限 MB（10～1048576）" Margin="0,0,0,5"/>
+                    <TextBox x:Name="MaximumMegabytesTextBox" Height="36" Padding="8,5"
+                             Margin="0,0,0,12"/>
+
+                    <Separator Margin="0,4,0,18"/>
+                    <TextBlock Text="界面偏好" FontSize="18"
+                               FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <TextBlock Text="界面主题" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="ThemeComboBox" Height="36"
+                              SelectedValuePath="Tag" Margin="0,0,0,12">
+                        <ComboBoxItem Content="浅色主题" Tag="Light"/>
+                        <ComboBoxItem Content="深色主题" Tag="Dark"/>
+                    </ComboBox>
+                    <CheckBox x:Name="RememberWindowStateCheckBox"
+                              Content="记住主窗口尺寸和最大化状态"
+                              Margin="0,0,0,16"/>
+
+                    <Border Background="#EFF6FF" BorderBrush="#93C5FD"
+                            BorderThickness="1" CornerRadius="5" Padding="10"
+                            Margin="0,4,0,18">
+                        <TextBlock Text="保存后立即更新界面和存储策略。已经建立的 PLC/Modbus 连接不会被强制切断；下次连接使用新地址。"
+                                   TextWrapping="Wrap" Foreground="#1E40AF"/>
+                    </Border>
+
+                    <TextBlock x:Name="ErrorTextBlock" Foreground="#B91C1C"
+                               TextWrapping="Wrap" Margin="0,0,0,12"/>
+                    <WrapPanel HorizontalAlignment="Center">
+                        <Button Content="保存设置" Width="150" Height="42"
+                                Background="#2563EB" Foreground="White"
+                                FontWeight="SemiBold" Click="Save_Click"
+                                Margin="0,0,12,0"/>
+                        <Button Content="取消" Width="120" Height="42"
+                                IsCancel="True"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Window>

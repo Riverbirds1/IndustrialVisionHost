@@ -1,0 +1,13 @@
+* text=auto
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.db binary
+*.sqlite binary
+*.dll binary
+*.exe binary
+*.pdb binary
+*.zip binary
