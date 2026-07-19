@@ -281,8 +281,6 @@ powershell -ExecutionPolicy Bypass -File scripts\run-long-stability.ps1
 
 ## 延伸文档
 
-- [学习路线](docs/LEARNING_ROADMAP.md)
-- [项目开发记录](docs/PROJECT_STATUS.md)
 - [稳定性与性能基线](docs/STABILITY_BASELINE.md)
 - [Release发布说明](docs/RELEASE_GUIDE.md)
 - [PLC与Modbus通信协议](docs/COMMUNICATION_PROTOCOL.md)

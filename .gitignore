@@ -24,3 +24,8 @@ publish/
 !.env.example
 *.user
 *.suo
+
+# Personal learning and job-search notes (kept locally only)
+docs/LEARNING_ROADMAP.md
+docs/PROJECT_STATUS.md
+docs/PROJECT_PITCH.md
